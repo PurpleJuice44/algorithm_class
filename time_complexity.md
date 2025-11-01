@@ -48,3 +48,6 @@
 > ✅ **Big O는 "최악의 경우"를 보여주고**,  
 > ✅ **Ω는 "최선의 경우"를 보여주고**,  
 > ✅ **Θ는 "정확한 경계"를 보여줌** → 알고리즘의 성능을 더 정확하게 평가 가능
+
+> <img width="1728" height="1156" alt="image" src="https://github.com/user-attachments/assets/d2164186-5d77-4477-b7d1-ede003e2682d" />
+
