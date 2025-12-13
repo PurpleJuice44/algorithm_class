@@ -1,4 +1,4 @@
-분할정복 (Divide and Conquer) 알고리즘
+# 분할정복 (Divide and Conquer) 알고리즘
 
 ## 📚 개념과 이해
 
