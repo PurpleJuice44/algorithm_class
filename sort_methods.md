@@ -1,247 +1,188 @@
-## 📚 정렬 알고리즘 정리 (C++ 기준)
+# 정렬 - 순서대로 세우기
 
-| 정렬 알고리즘                | STL 사용 여부 | 시간 복잡도 (최선/평균/최악)                    | 공간 복잡도           | 특징                            |
-| ---------------------- | --------- | ------------------------------------ | ---------------- | ----------------------------- |
-| 버블 정렬 (Bubble Sort)    | ✅ STL     | O(n²) / O(n²) / O(n²)                | O(1)             | 인접한 원소를 비교하며 순서를 정함. 안정 정렬.   |
-| 선택 정렬 (Selection Sort) | ✅ STL     | O(n²) / O(n²) / O(n²)                | O(1)             | 가장 작은 원소를 찾아 위치 변경. 안정 정렬 아님. |
-| 삽입 정렬 (Insertion Sort) | ✅ STL     | O(n²) / O(n²) / O(n²)                | O(1)             | 부분적으로 정렬된 데이터에 효율적. 안정 정렬.    |
-| 퀵 정렬 (Quick Sort)      | ✅ STL     | O(n log n) (평균) / O(n²) (최악)         | O(log n) (재귀 스택) | 분할 기반. 평균적으로 매우 빠름.           |
-| 병합 정렬 (Merge Sort)     | ✅ STL     | O(n log n) / O(n log n) / O(n log n) | O(n)             | 분할-병합 구조. 안정 정렬.              |
-| 기수 정렬 (Radix Sort)     | ✅ STL     | O(d × (n + k))                       | O(n + k)         | 자릿수 기반 정렬. 정수/문자에 적합.         |
-| 카운터 정렬 (Counting Sort) | ✅ STL     | O(n + k)                             | O(k)             | 범위가 제한된 정수 정렬. 최적 O(n) 가능.    |
+## 왜 정렬부터 배울까?
+
+KOI 문제의 절반은 "정렬하고 나서 생각한다"로 시작한다.
+정렬이 돼 있으면 이분탐색, 투포인터, 그리디가 모두 쉬워진다.
+
+> 비유: 키 순서대로 줄 세우기. 키 순으로 서 있으면 "가장 작은 사람"을 찾는 데 1초면 된다. 섞여 있으면 30명을 다 봐야 한다.
 
 ---
 
-## 🔍 각 정렬 알고리즘 설명 및 코드
+## 1. 정렬을 고를 때 보는 3가지
+
+1. **시간** - 얼마나 빠른가 (O 표시)
+2. **공간** - 메모리를 얼마나 더 쓰는가
+3. **안정성** - 같은 값의 순서가 유지되는가 (동점자 처리에서 중요)
+
+| 정렬 | 평균 시간 | 공간 | 안정 | 언제 쓰나 |
+|---|---|---|---|---|
+| 버블 | O(n²) | O(1) | 유지 | n ≤ 1,000, 교육용 |
+| 선택 | O(n²) | O(1) | 깨짐 | n ≤ 1,000 |
+| 삽입 | O(n²) 평균, 거의 정렬이면 O(n) | O(1) | 유지 | 거의 정렬된 데이터 |
+| 퀵 | O(n log n) 평균, 최악 O(n²) | O(log n) | 깨짐 | 일반적으론 빠름 |
+| 병합 | O(n log n) | O(n) | 유지 | 안정성이 필요할 때 |
+| 카운팅 | O(n+k) | O(k) | 유지 | 값의 범위 k가 작을 때 (예: 0~10,000) |
+| 기수 | O(d·(n+k)) | O(n+k) | 유지 | 자릿수 d가 작을 때 |
+
+> KOI 실전: 직접 정렬을 구현하지 않는다. `sort()`를 쓴다. C++ `sort()`는 O(n log n)이며 충분히 빠르다.
+
+```mermaid
+flowchart TD
+    S[정렬이 필요하다] --> Q{값의 범위가 작나?}
+    Q -->|예: 0~10000| A[카운팅 정렬\nO n+k]
+    Q -->|아니오| R{안정성이 필요한가?}
+    R -->|예: 동점자 순서 유지| B[병합 정렬\nO n log n]
+    R -->|아니오| C[sort 함수\nO n log n]
+    C --> D[KOI 기본 선택]
+```
 
 ---
 
-### 1. 버블 정렬 (Bubble Sort)
+## 2. 동작을 그림으로 보기
 
-**설명**: 인접한 두 원소를 비교하여 큰 값을 뒤로 이동. 반복적으로 순서를 정함.
+### 버블 정렬 - 옆 사람과 비교해 큰 것을 뒤로 민다
+
+```mermaid
+flowchart LR
+    A1[5 2 8 1] --> B1[2 5 8 1\n5와2 교환]
+    B1 --> C1[2 5 8 1\n5와8 유지]
+    C1 --> D1[2 5 1 8\n8과1 교환]
+    D1 --> E1[1회전 끝\n가장 큰 8이 맨 뒤로]
+```
+
+코드:
 
 ```cpp
-// STL 사용 (std::vector + std::sort)
-#include <vector>
-#include <algorithm>
-std::vector<int> arr = {64, 34, 25, 12, 22, 11, 90};
-std::sort(arr.begin(), arr.end()); // O(n²) 최악
-
-// STL 없이 직접 구현
-void bubbleSort(std::vector<int>& arr) {
-    int n = arr.size();
-    for (int i = 0; i < n-1; ++i) {
-        for (int j = 0; j < n-i-1; ++j) {
-            if (arr[j] > arr[j+1]) {
-                std::swap(arr[j], arr[j+1]);
-            }
+void bubbleSort(vector<int>& a) {
+    int n = a.size();
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (a[j] > a[j + 1]) swap(a[j], a[j + 1]); // 옆과 비교해 크면 교환
         }
     }
 }
 ```
 
----
+### 선택 정렬 - 남은 것 중 가장 작은 것을 앞으로
 
-### 2. 선택 정렬 (Selection Sort)
+```mermaid
+flowchart LR
+    S1[5 2 8 1] --> S2[1 2 8 5\n가장 작은 1을 맨 앞으로]
+    S2 --> S3[1 2 8 5\n남은 것 중 가장 작은 2 유지]
+    S3 --> S4[1 2 5 8\n5와8 교환]
+```
 
-**설명**: 가장 작은 원소를 찾아 위치에 삽입. 전체 순회 중 최소값을 찾음.
+### 삽입 정렬 - 한 장씩 꺼내 알맞은 자리에 꽂는다
+
+```mermaid
+flowchart LR
+    I1[손패: 5 | 덱: 2 8 1] --> I2[2 5 | 8 1\n2를 5 앞에 삽입]
+    I2 --> I3[2 5 8 | 1\n8은 제자리]
+    I3 --> I4[1 2 5 8\n1을 맨 앞에 삽입]
+```
 
 ```cpp
-// STL
-std::sort(arr.begin(), arr.end());
-
-// 직접 구현
-void selectionSort(std::vector<int>& arr) {
-    int n = arr.size();
-    for (int i = 0; i < n-1; ++i) {
-        int min_idx = i;
-        for (int j = i+1; j < n; ++j) {
-            if (arr[j] < arr[min_idx]) {
-                min_idx = j;
-            }
+void insertionSort(vector<int>& a) {
+    for (int i = 1; i < a.size(); i++) {
+        int key = a[i], j = i - 1;
+        while (j >= 0 && a[j] > key) { // key보다 큰 것은 한 칸 뒤로
+            a[j + 1] = a[j];
+            j--;
         }
-        std::swap(arr[i], arr[min_idx]);
+        a[j + 1] = key;
     }
 }
 ```
 
+### 병합 정렬 - 반으로 나누고, 정렬된 것끼리 합친다 (분할정복)
+
+```mermaid
+flowchart TD
+    M0[5 2 8 1 9 3] --> M1[5 2 8]
+    M0 --> M2[1 9 3]
+    M1 --> M3[5]
+    M1 --> M4[2 8]
+    M4 --> M5[2]
+    M4 --> M6[8]
+    M5 & M6 --> M7[2 8 정렬됨]
+    M3 & M7 --> M8[2 5 8 정렬됨]
+    M2 --> M9[1]
+    M2 --> M10[9 3]
+    M10 --> M11[9]
+    M10 --> M12[3]
+    M11 & M12 --> M13[3 9 정렬됨]
+    M9 & M13 --> M14[1 3 9 정렬됨]
+    M8 & M14 --> M15[1 2 3 5 8 9 최종]
+```
+
+### 퀵 정렬 - 기준(pivot)을 잡고 작은 것은 왼쪽, 큰 것은 오른쪽
+
+```mermaid
+flowchart TD
+    Q0[5 2 8 1 9 3\npivot=3] --> Q1[2 1 |3| 8 9 5\n3보다 작으면 왼쪽]
+    Q1 --> Q2[왼쪽 다시 정렬]
+    Q1 --> Q3[오른쪽 다시 정렬]
+    Q2 --> Q4[1 2]
+    Q3 --> Q5[5 8 9]
+    Q4 & Q5 --> Q6[1 2 3 5 8 9]
+```
+
+> KOI에서는 퀵/병합을 직접 구현할 일이 거의 없다. 원리를 그림으로 이해하고 `sort()`를 쓰면 된다.
+
 ---
 
-### 3. 삽입 정렬 (Insertion Sort)
-
-**설명**: 부분적으로 정렬된 데이터에 매우 효율적. 각 원소를 정확한 위치에 삽입.
+## 3. KOI에서 쓰는 정렬은 이것 하나
 
 ```cpp
-// STL
-std::sort(arr.begin(), arr.end());
+#include <bits/stdc++.h>
+using namespace std;
 
-// 직접 구현
-void insertionSort(std::vector<int>& arr) {
-    int n = arr.size();
-    for (int i = 1; i < n; ++i) {
-        int key = arr[i];
-        int j = i - 1;
-        while (j >= 0 && arr[j] > key) {
-            arr[j+1] = arr[j];
-            --j;
-        }
-        arr[j+1] = key;
-    }
+int main() {
+    vector<int> a = {5, 2, 8, 1, 9, 3};
+    sort(a.begin(), a.end()); // 오름차순 O(n log n)
+
+    for (int x : a) cout << x << ' '; // 1 2 3 5 8 9
+    cout << '\n';
+
+    sort(a.begin(), a.end(), greater<int>()); // 내림차순
+    for (int x : a) cout << x << ' '; // 9 8 5 3 2 1
 }
 ```
 
----
-
-### 4. 퀵 정렬 (Quick Sort)
-
-**설명**: 피봇 기반 분할. 평균적으로 매우 빠르며, 최악 경우 O(n²) 발생 가능.
+값의 범위가 작을 때만 카운팅 정렬을 고려한다:
 
 ```cpp
-// STL
-std::sort(arr.begin(), arr.end());
-
-// 직접 구현 (재귀 버전)
-void quickSort(std::vector<int>& arr, int low, int high) {
-    if (low < high) {
-        int pivot = partition(arr, low, high);
-        quickSort(arr, low, pivot - 1);
-        quickSort(arr, pivot + 1, high);
-    }
-}
-
-int partition(std::vector<int>& arr, int low, int high) {
-    int pivot = arr[high];
-    int i = low - 1;
-    for (int j = low; j < high; ++j) {
-        if (arr[j] <= pivot) {
-            ++i;
-            std::swap(arr[i], arr[j]);
-        }
-    }
-    std::swap(arr[i+1], arr[high]);
-    return i + 1;
-}
-```
-
----
-
-### 5. 병합 정렬 (Merge Sort)
-
-**설명**: 분할-병합 구조. 안정 정렬이며 O(n log n) 보장.
-
-```cpp
-// STL
-std::sort(arr.begin(), arr.end());
-
-// 직접 구현
-void merge(std::vector<int>& arr, int left, int mid, int right) {
-    std::vector<int> temp;
-    int i = left, j = mid + 1;
-    while (i <= mid && j <= right) {
-        temp.push_back(arr[i] <= arr[j] ? arr[i++] : arr[j++]);
-    }
-    while (i <= mid) temp.push_back(arr[i++]);
-    while (j <= right) temp.push_back(arr[j++]);
-    for (int k = 0; k < temp.size(); ++k) arr[left + k] = temp[k];
-}
-
-void mergeSort(std::vector<int>& arr, int left, int right) {
-    if (left < right) {
-        int mid = left + (right - left) / 2;
-        mergeSort(arr, left, mid);
-        mergeSort(arr, mid + 1, right);
-        merge(arr, left, mid, right);
-    }
-}
-```
-
----
-
-### 6. 기수 정렬 (Radix Sort)
-
-**설명**: 자릿수 기반 정렬. 정수 또는 문자열에 적합. O(d × (n + k)) (d: 자릿수, k: 범위)
-
-```cpp
-// STL
-std::sort(arr.begin(), arr.end());
-
-// 직접 구현 (10진수 기반)
-void radixSort(std::vector<int>& arr) {
-    int max = *std::max_element(arr.begin(), arr.end());
-    for (int exp = 1; max / exp > 0; exp *= 10) {
-        countingSortByDigit(arr, exp);
-    }
-}
-
-void countingSortByDigit(std::vector<int>& arr, int exp) {
-    std::vector<int> output(arr.size());
-    std::vector<int> count(10);
-    for (int num : arr) {
-        int digit = (num / exp) % 10;
-        count[digit]++;
-    }
-    for (int i = 1; i < 10; ++i) {
-        count[i] += count[i-1];
-    }
-    for (int i = arr.size()-1; i >= 0; --i) {
-        int digit = (arr[i] / exp) % 10;
-        output[count[digit]-1] = arr[i];
-        count[digit]--;
-    }
-    for (int i = 0; i < arr.size(); ++i) {
-        arr[i] = output[i];
-    }
-}
-```
-
----
-
-### 7. 카운터 정렬 (Counting Sort)
-
-**설명**: 범위가 제한된 정수에 최적. O(n + k) 시간 복잡도.
-
-```cpp
-// STL
-std::sort(arr.begin(), arr.end());
-
-// 직접 구현
-void countingSort(std::vector<int>& arr, int max_val) {
-    std::vector<int> count(max_val + 1, 0);
-    for (int num : arr) {
-        count[num]++;
-    }
+// 값은 0~10000, n은 1,000,000일 때 O(n+k)로 더 빠르다
+void countingSort(vector<int>& a, int maxVal) {
+    vector<int> cnt(maxVal + 1, 0);
+    for (int x : a) cnt[x]++;
     int idx = 0;
-    for (int i = 0; i <= max_val; ++i) {
-        while (count[i] > 0) {
-            arr[idx++] = i;
-            count[i]--;
-        }
-    }
+    for (int v = 0; v <= maxVal; v++)
+        while (cnt[v]--) a[idx++] = v;
 }
 ```
 
 ---
 
-## 📌 정리 요약
+## 4. 직접 손으로 풀어 보기
 
-| 알고리즘 | STL 사용 여부 | 시간 복잡도 (평균) | 공간 복잡도 | 안정성 | 적합한 경우 |
-|--------|-------------|------------------|------------|--------|-------------|
-| 버블 | ✅ | O(n²) | O(1) | ✅ | 작은 데이터, 교육용 |
-| 선택 | ✅ | O(n²) | O(1) | ❌ | 작은 데이터 |
-| 삽입 | ✅ | O(n²) | O(1) | ✅ | 부분 정렬된 데이터 |
-| 퀵 | ✅ | O(n log n) | O(log n) | ❌ | 대부분의 경우 |
-| 병합 | ✅ | O(n log n) | O(n) | ✅ | 안정 정렬 필요, 대용량 |
-| 기수 | ✅ | O(d×(n+k)) | O(n+k) | ✅ | 정수, 문자열, 정해진 범위 |
-| 카운터 | ✅ | O(n+k) | O(k) | ✅ | 범위 제한된 정수 |
+**문제 1.** `[4, 1, 3, 2]`를 버블 정렬로 1회전 하면?
 
-> 💡 **STL 사용 시** `std::sort`는 일반적으로 **퀵 정렬 또는 인터넷 정렬 기반**으로 구현되어 있으며, **평균적으로 매우 빠르고** 대부분의 경우 최적의 성능을 보임.  
-> 그러나 **정렬 방식이 정해져 있어야** (예: 정수, 정렬 가능) `std::sort`가 최적임.
+<details><summary>풀이</summary>
+4>1 교환 → 1 4 3 2 → 4>3 교환 → 1 3 4 2 → 4>2 교환 → 1 3 2 4. 가장 큰 4가 맨 뒤로 간다.
+</details>
+
+**문제 2.** n=200,000, 값은 0~1,000,000. 어떤 정렬을 쓰나?
+
+<details><summary>풀이</summary>
+값의 범위가 넓어 카운팅은 메모리 1,000,001 필요로 비효율. 그냥 `sort()` O(n log n)이 정답.
+</details>
 
 ---
 
-## ✅ 추가 팁
+## 5. KOI에서는 이렇게 나온다
 
-- **STL을 사용하면** `std::sort`는 대부분의 경우 최적의 성능을 보장.  
-- **자체 구현**은 학습 및 알고리즘 이해에 유용.  
-- **안정 정렬**이 필요한 경우 (예: 동일한 값의 순서 보존) → **병합, 삽입, 기수, 카운터**가 적합.  
-- **대용량 정렬** → **병합 또는 퀵** (STL 기반) 추천.
+- "점수 순으로 정렬한 뒤 앞에서 k명을 뽑아라" → 정렬이 전제
+- "두 배열의 합이 가장 작게" → 둘 다 정렬 후 비교
+- 정렬 없이 풀면 O(n²)인 문제가 정렬 후 O(n log n)에 풀린다. KOI는 이 차이를 노리고 낸다.

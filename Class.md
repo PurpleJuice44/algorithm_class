@@ -1,711 +1,258 @@
-## 1. C++ 클래스의 정의와 역사적 배경
+# 클래스 - 설계도로 찍어내는 객체
 
-C++ 클래스는 **객체 지향 프로그래밍**(OOP)의 핵심 요소로, 데이터와 함수를 하나의 단위로 묶어 **데이터의 은닉성**(encapsulation)과 **코드 재사용성**(reusability)을 제공합니다. C++ 클래스는 1980년대 후반에 Bjarne Stroustrup이 C 언어를 기반으로 개선한 언어로, 기존의 구조체(struct)를 확장하여 **멤버 변수와 멤버 함수를 포함**할 수 있게 했습니다.
+## 왜 클래스인가?
 
-> 📌 **클래스는 "형태"를 정의하고, 그 형식에 맞는 객체(인스턴스)를 생성하는 기반입니다.**
+같은 모양의 데이터를 여러 개 만들어야 할 때가 있다. 학생 100명이면 이름·점수·학번이 100세트다.
+클래스는 **"이렇게 생긴 것을 찍어내자"는 설계도**다.
 
-### 1.1 클래스 vs 구조체 (struct)
+> 비유: 붕어빵 틀(클래스)에서 붕어빵(객체)을 찍어낸다. 틀은 하나, 붕어빵은 여러 개다.
 
-| 항목 | 구조체 (struct) | 클래스 (class) |
-|------|----------------|----------------|
-| 기본 접근 제어 | public (기본) | default: private |
-| 상속 가능 | ❌ | ✅ |
-| 생성자/소멸자 | ❌ | ✅ |
-| friend 멤버 | ❌ | ✅ |
-| 상수 멤버 함수 | ❌ | ✅ |
-
-> 💡 예: `struct Point { int x, y; };` → 멤버는 모두 public  
-> `class Point { private: int x, y; public: void set(int a, int b); };` → private으로 보호
+```mermaid
+flowchart LR
+    A[클래스\n설계도] -->|찍어낸다| B[객체1\n철수]
+    A --> C[객체2\n영희]
+    A --> D[객체3\n민수]
+    B & C & D --> E[각자 다른 값을 가짐]
+```
 
 ---
 
-## 2. 클래스의 구성 요소
+## 1. 클래스 vs 구조체
 
-### 2.1 멤버 변수 (Member Variables)
+둘 다 설계도다. 차이는 **기본 공개 범위**와 **기능**이다.
 
-클래스 내부에 정의된 변수는 **멤버 변수**로, 각 인스턴스(객체)마다 별도의 공간을 할당받습니다.
+| 구분 | struct | class |
+|---|---|---|
+| 기본 공개 | public (열림) | private (잠김) |
+| 상속 | 제한 | 가능 |
+| 생성자·소멸자 | 없음 | 있음 |
 
 ```cpp
-class Rectangle {
-private:
-    int width;
-    int height;
+struct Point { int x, y; }; // x,y 바로 접근 가능
+
+class Point2 {
+private: int x, y; // 잠김 - 바깥에서 직접 못 만짐
 public:
-    Rectangle(int w, int h) : width(w), height(h) {}
+    void set(int a, int b) { x = a; y = b; }
+    int getX() const { return x; }
 };
 ```
 
-- `private`: 외부에서 접근 불가 (멤버 함수만 접근 가능)
-- `public`: 외부에서 접근 가능
-
-> ⚠️ 멤버 변수는 **생성자 초기화 리스트**(initialization list)를 통해 초기화 가능
+> KOI에서는 `struct`로 좌표·간선처럼 단순 묶음을, `class`로 상태와 행동이 있는 객체를 만든다.
 
 ---
 
-### 2.2 멤버 함수 (Member Functions)
+## 2. 클래스의 3요소
 
-클래스 내에 정의된 함수는 **멤버 함수**로, 객체의 행동을 제어합니다.
+```mermaid
+flowchart TD
+    C[클래스] --> V[멤버 변수\n상태 - 데이터]
+    C --> F[멤버 함수\n행동 - 함수]
+    C --> A[접근 제어\n누가 만질 수 있나]
+    V --> V1[int x, y]
+    F --> F1[move, attack]
+    A --> A1[private / protected / public]
+```
+
+### 멤버 변수 - 각 객체가 따로 가지는 값
+
+```cpp
+class Rectangle {
+    int width, height; // 각 사각형마다 다른 값
+public:
+    Rectangle(int w, int h) : width(w), height(h) {}
+    int area() const { return width * height; }
+};
+```
+
+### 멤버 함수 - 객체가 하는 일
 
 ```cpp
 class Circle {
-private:
     double radius;
 public:
     Circle(double r) : radius(r) {}
-    double getArea() const { return 3.14159 * radius * radius; }
+    double area() const { return 3.14159 * radius * radius; }
     void setRadius(double r) { radius = r; }
 };
 ```
 
-- `const` 함수는 **변수를 변경하지 않음** → 컴파일러가 안전성 보장
-- `const` 함수는 `const` 멤버 함수로 선언 가능
+`const` 함수는 값을 바꾸지 않는다는 약속이다.
 
 ---
 
-## 3. 생성자 (Constructor)
+## 3. 생성자와 소멸자 - 만들고 없앨 때 자동 실행
 
-### 3.1 기본 생성자
+```mermaid
+flowchart LR
+    S[객체 생성] --> C[생성자 자동 호출\n초기화]
+    C --> U[사용]
+    U --> D[범위 끝·delete] --> DS[소멸자 자동 호출\n정리]
+```
 
 ```cpp
 class Person {
-private:
-    std::string name;
-    int age;
+    string name; int age;
 public:
-    Person() : name("Unknown"), age(0) {}
-    Person(const std::string& n, int a) : name(n), age(a) {}
+    Person() : name("Unknown"), age(0) {} // 기본 생성자
+    Person(string n, int a) : name(n), age(a) {} // 오버로딩
+    ~Person() { /* 필요하면 정리 */ }
 };
+
+Person p1;              // 기본 생성자
+Person p2("철수", 15);  // 인자 있는 생성자
 ```
 
-- 생성자는 **객체가 생성될 때 자동으로 호출**
-- **복사 생성자**(copy constructor), **이동 생성자**(move constructor)도 포함
+> 생성자가 여러 개면 **오버로딩**. 인자 개수·타입이 다르면 구분된다.
 
 ---
 
-### 3.2 생성자 오버로딩 (Constructor Overloading)
+## 4. 접근 제어 - 누가 볼 수 있나
 
-다양한 인자 조합으로 객체를 생성할 수 있도록 여러 생성자를 정의 가능
-
-```cpp
-class Car {
-public:
-    Car();                    // 기본 생성자
-    Car(int year, std::string model); // 인자 2개
-    Car(const Car& other);    // 복사 생성자
-    Car(Car&& other);         // 이동 생성자
-};
-```
-
-> 💡 생성자 오버로딩은 **인스턴스화 시 유연성 제공**
-
----
-
-## 4. 소멸자 (Destructor)
-
-객체가 소멸될 때 자동으로 호출되는 함수. **메모리 누수 방지**에 중요
-
-```cpp
-class Resource {
-private:
-    int* data;
-public:
-    Resource() { data = new int[100]; }
-    ~Resource() { delete[] data; } // 소멸자
-};
-```
-
-- 소멸자는 **반드시 정의되어야 하는 경우가 많음** (예: 자원 관리)
-- `~ClassName()` 형식
-
----
-
-## 5. 접근 제어 (Access Specifiers)
-
-| 접근 제어 | 설명 |
-|----------|------|
-| `private` | 클래스 내부에서만 접근 가능 (기본) |
-| `protected` | 상속된 자식 클래스에서만 접근 가능 (상속 보호) |
-| `public` | 외부에서 접근 가능 (기본) |
+| 키워드 | 볼 수 있는 곳 |
+|---|---|
+| private | 클래스 안만 |
+| protected | 클래스 안 + 자식 클래스 |
+| public | 어디서나 |
 
 ```cpp
 class Base {
-protected:
-    int protectedData;
-public:
-    void set(int x) { protectedData = x; }
+protected: int p; // 자식이 볼 수 있음
+public:    void set(int x) { p = x; }
 };
-class Derived : public Base {
-public:
-    void access() { // protected 멤버 접근 가능
-        protectedData = 100;
-    }
+class Child : public Base {
+public: void f() { p = 10; } // protected라 접근 가능
 };
 ```
 
-> ✅ `protected`는 **상속을 통한 보호**를 위해 사용
-
 ---
 
-## 6. 상속 (Inheritance)
+## 5. 상속 - 기존 설계도를 확장
 
-클래스를 기반으로 다른 클래스를 **확장**하거나 **재정의**할 수 있음
-
-### 6.1 단일 상속
+부모의 기능을 물려받아 자식이 더한다.
 
 ```cpp
 class Animal {
 public:
-    virtual void sound() = 0; // 추상 메서드
+    virtual void sound() = 0; // 순수 가상 - 자식이 반드시 구현
+    virtual ~Animal() = default;
 };
-
 class Dog : public Animal {
 public:
-    void sound() override {
-        std::cout << "Woof!\n";
-    }
+    void sound() override { cout << "멍멍\n"; }
 };
+void makeSound(Animal &a) { a.sound(); } // Dog, Cat 모두 가능 - 다형성
 ```
 
-- `virtual` 키워드는 **다형성**(polymorphism)을 위해 사용
-- `override`는 부모 메서드를 재정의할 때 사용
+```mermaid
+flowchart TD
+    AN[Animal\nsound 순수 가상] --> DOG[Dog\n멍멍]
+    AN --> CAT[Cat\n야옹]
+    DOG & CAT --> POLY[Animal* 로 같이 다룬다\n다형성]
+```
+
+> KOI에서는 깊은 상속보다 `struct` 조합을 더 많이 쓴다. 다형성은 게임·시뮬레이션 문제에서만 가끔 나온다.
 
 ---
 
-### 6.2 다중 상속 (Multiple Inheritance)
+## 6. 꼭 알아야 할 것 4가지
 
-```cpp
-class A {
-public:
-    void printA() { std::cout << "A\n"; }
-};
-
-class B {
-public:
-    void printB() { std::cout << "B\n"; }
-};
-
-class C : public A, public B {
-public:
-    void printAll() {
-        printA();
-        printB();
-    }
-};
-```
-
-> ⚠️ 다중 상속은 **명확한 메서드 충돌**을 유발할 수 있음 → `virtual` 키워드와 `override`를 통해 해결
-
----
-
-## 7. 다형성 (Polymorphism)
-
-동일한 인터페이스를 통해 **다른 행동을 수행**할 수 있음
-
-```cpp
-void makeSound(Animal& animal) {
-    animal.sound();
-}
-
-// Dog, Cat 등이 모두 sound()를 구현하면 다형성 작동
-```
-
-- **동적 바인딩**(dynamic binding) → 런타임에 함수를 결정
-- `virtual` 키워드가 필요
-
----
-
-## 8. 정적 멤버 (Static Members)
-
-클래스 전체에 공유되는 멤버
+### 정적 멤버 - 모든 객체가 공유
 
 ```cpp
 class Counter {
-private:
-    static int count;  // 정적 멤버 변수
-    static std::mutex mtx;
+    static int cnt; // 모든 Counter가 같은 cnt를 봄
 public:
-    static void increment() {
-        std::lock_guard<std::mutex> lock(mtx);
-        count++;
-    }
-    static int getValue() { return count; }
+    static void inc() { cnt++; }
 };
+int Counter::cnt = 0;
 ```
 
-- 정적 멤버는 **인스턴스 없이 접근 가능**
-- `static` 키워드 사용
+> 인스턴스 없이 `Counter::inc()`로 호출한다.
 
-> ✅ 예: 게임에서 플레이어 수를 공유할 때 유용
-
----
-
-## 9. 정적 함수 (Static Function)
-
-클래스의 정적 멤버에 접근할 수 있음
+### 연산자 오버로딩 - `+`를 내 맘대로 정의
 
 ```cpp
-class Math {
-public:
-    static double add(double a, double b) {
-        return a + b;
-    }
-};
-```
-
-- `Math::add(2, 3)`처럼 클래스 이름으로 호출 가능
-
----
-
-## 10. friend 함수 및 friend 멤버
-
-클래스 외부에서 멤버를 접근할 수 있도록 허용
-
-```cpp
-class BankAccount {
-private:
-    double balance;
-public:
-    BankAccount(double b) : balance(b) {}
-    friend void printBalance(const BankAccount& acc);
-};
-
-void printBalance(const BankAccount& acc) {
-    std::cout << "Balance: " << acc.balance << "\n";
-}
-```
-
-> ✅ 예: 파일 입출력, 템플릿 함수 등 외부에서 접근 필요할 때
-
----
-
-## 11. 생성자와 소멸자 중복 방지
-
-### 11.1 복사 생성자 (Copy Constructor)
-
-```cpp
-class MyClass {
-public:
-    MyClass(const MyClass& other) {
-        std::cout << "Copy constructor called\n";
-    }
-};
-```
-
-- 컴파일러가 자동으로 생성하지만, **복사가 원하지 않으면 명시적으로 삭제**
-
-```cpp
-MyClass(const MyClass&) = delete; // 복사 금지
-```
-
----
-
-### 11.2 이동 생성자 (Move Constructor)
-
-```cpp
-MyClass(MyClass&&) = default; // 이동 가능
-```
-
-- **이동은 복사보다 효율적** (예: large object, dynamic allocation)
-
----
-
-## 12. 연산자 오버로딩 (Operator Overloading)
-
-기존 연산자들을 클래스에 맞게 재정의 가능
-
-```cpp
-class Vector {
-private:
+struct Vec {
     int x, y;
-public:
-    Vector(int a, int b) : x(a), y(b) {}
-    
-    Vector operator+(const Vector& other) {
-        return Vector(x + other.x, y + other.y);
-    }
-    
-    void print() {
-        std::cout << "(" << x << ", " << y << ")\n";
-    }
+    Vec operator+(const Vec& o) const { return {x+o.x, y+o.y}; }
 };
-
-// 사용 예
-Vector v1(1, 2), v2(3, 4);
-Vector v3 = v1 + v2; // 연산자 오버로딩
+Vec a{1,2}, b{3,4}, c = a + b; // (4,6)
 ```
 
-> ✅ 유용한 경우: 벡터, 행렬, 수학적 연산
+### const 객체와 const 함수
 
----
-
-## 13. 상수 멤버 함수 (Const Member Functions)
+`const` 객체는 `const` 함수만 부를 수 있다.
 
 ```cpp
-class Point {
-private:
+struct Point {
     int x, y;
-public:
-    void set(int a, int b) { x = a; y = b; }
-    int getX() const { return x; } // const 함수
+    int getX() const { return x; } // const 객체도 호출 가능
+    void setX(int v) { x = v; }    // const 객체는 호출 불가
 };
 ```
 
-- `const` 함수는 **멤버 변수를 변경하지 않음**
-- 컴파일러가 **불변성**을 보장
-
----
-
-## 14. 상수 인스턴스 (const object)
+### 템플릿 클래스 - 타입을 나중에 정한다
 
 ```cpp
-const Circle c; // c는 변경 불가
-c.setRadius(10); // ❌ 컴파일 오류
-```
-
-- `const` 인스턴스는 **변경 불가능**
-
----
-
-## 15. 인터페이스 설계 (Interface Design)
-
-클래스는 **인터페이스를 정의**할 수 있음
-
-```cpp
-class Drawable {
-public:
-    virtual void draw() = 0; // 추상 메서드
-    virtual ~Drawable() = default;
-};
-
-class Circle : public Drawable {
-public:
-    void draw() override {
-        std::cout << "Drawing a circle\n";
-    }
-};
-```
-
-- **추상 클래스**(abstract class)는 인스턴스화 불가
-
----
-
-## 16. 예외 처리와 클래스
-
-```cpp
-class SafeDivide {
-public:
-    double divide(double a, double b) {
-        if (b == 0) {
-            throw std::invalid_argument("Division by zero");
-        }
-        return a / b;
-    }
-};
-```
-
-- 예외는 **클래스 내부에서 처리 가능**
-
----
-
-## 17. 상속과 다형성의 실생활 예제
-
-### 17.1 게임 개발 (예: 캐릭터)
-
-```cpp
-class Character {
-public:
-    virtual void move() = 0;
-    virtual void attack() = 0;
-};
-
-class Player : public Character {
-public:
-    void move() override { std::cout << "Player moving\n"; }
-    void attack() override { std::cout << "Player attacking\n"; }
-};
-
-class Enemy : public Character {
-public:
-    void move() override { std::cout << "Enemy moving\n"; }
-    void attack() override { std::cout << "Enemy attacking\n"; }
-};
-```
-
-- **다형성**으로 동일한 인터페이스를 통해 다양한 행동 가능
-
----
-
-## 18. C++11 이후의 클래스 기능
-
-### 18.1 Lambda와 클래스
-
-```cpp
-class Timer {
-public:
-    std::function<void()> callback;
-    Timer() {
-        callback = []() { std::cout << "Timer expired!\n"; };
-    }
-};
-```
-
-- **람다 함수**를 멤버로 저장 가능
-
----
-
-### 18.2 `auto`와 클래스
-
-```cpp
-auto obj = MyClass(10, 20); // 자동 타입 추론
-```
-
-- `auto`는 클래스 생성도 가능
-
----
-
-## 19. 실무 적용 사례
-
-### 19.1 데이터베이스 연결 관리
-
-```cpp
-class DatabaseConnection {
-private:
-    std::string host;
-    std::string user;
-    std::string password;
-    bool connected;
-public:
-    DatabaseConnection(const std::string& h, const std::string& u, const std::string& p)
-        : host(h), user(u), password(p), connected(false) {
-        connect();
-    }
-    void connect() {
-        if (!connected) {
-            std::cout << "Connecting to " << host << "\n";
-            connected = true;
-        }
-    }
-    void disconnect() {
-        connected = false;
-        std::cout << "Disconnected\n";
-    }
-};
-```
-
-- **자원 관리, 상태 유지, 예외 처리** 가능
-
----
-
-### 19.2 파일 처리 클래스
-
-```cpp
-class FileHandler {
-private:
-    std::string filename;
-public:
-    void openFile(const std::string& f) {
-        filename = f;
-        std::cout << "Opening file: " << filename << "\n";
-    }
-    void read() {
-        std::ifstream in(filename);
-        if (!in) {
-            throw std::runtime_error("Cannot open file");
-        }
-        // 읽기 로직
-    }
-};
-```
-
----
-
-## 20. 실무에서의 주의사항
-
-| 주의사항 | 설명 |
-|--------|------|
-| **멤버 변수는 public으로 하지 말 것** | 보안 및 유지보수 문제 |
-| **생성자/소멸자에 예외 처리 포함** | 자원 누수 방지 |
-| **상속 시 명확한 메서드 충돌 방지** | `virtual`, `override` 사용 |
-| **정적 멤버는 공유 상태에 주의** | 동시 접근 시 경쟁 조건 발생 가능 |
-| **const 함수는 변경하지 않음** | 컴파일러 최적화 및 안정성 보장 |
-
----
-
-## 21. C++17 이후의 고급 기능
-
-### 21.1 `std::optional`과 클래스
-
-```cpp
-class Result {
-public:
-    std::optional<int> value;
-    bool is_valid() const { return value.has_value(); }
-};
-```
-
-- **결과가 없을 경우** 처리 가능
-
----
-
-### 21.2 `std::variant` (다형성 타입)
-
-```cpp
-class Response {
-public:
-    std::variant<int, std::string, std::vector<int>> data;
-};
-```
-
-- **하나의 변수에 여러 타입 저장 가능**
-
----
-
-## 22. C++ 클래스와 메모리 관리
-
-- **스택 vs 힙**: 클래스 인스턴스는 스택에 저장되며, 생성/소멸은 스택에서 처리
-- **힙 할당**: 멤버 변수가 `new`로 할당되면 **소멸자에서 해제**
-
-```cpp
-class LargeObject {
-private:
-    int* data;
-public:
-    LargeObject() { data = new int[1000000]; }
-    ~LargeObject() { delete[] data; }
-};
-```
-
----
-
-## 23. C++ 클래스와 템플릿
-
-```cpp
-template <typename T>
-class Container {
-private:
+template<typename T>
+struct Box {
     T value;
-public:
-    Container(T v) : value(v) {}
-    void display() const { std::cout << value << "\n"; }
+    Box(T v) : value(v) {}
 };
+Box<int> bi(10);
+Box<string> bs("hello");
 ```
 
-- **유연한 설계**, **타입 안전**
+> `vector<int>`, `map<string,int>`가 바로 템플릿 클래스다.
 
 ---
 
-## 24. C++ 클래스와 인터페이스 (Interface)
+## 7. KOI에서 클래스를 쓰는 경우
 
-- C++는 **인터페이스를 정의할 수 없음** (추상 클래스를 사용)
-- **추상 메서드**를 통해 인터페이스를 모방 가능
+KOI는 알고리즘 대회라 클래스를 깊게 묻지 않는다. 다음 정도만 쓴다:
 
 ```cpp
-class Shape {
+// 1. 좌표·간선 묶기 - struct가 가장 간단
+struct Node { int x, y, dist; };
+
+// 2. 정렬 기준 - 연산자 오버로딩
+struct Act { int s, e; bool operator<(Act const& o) const { return e < o.e; } };
+
+// 3. DSU·그래프처럼 상태+함수가 필요한 것 - class
+class DSU {
+    vector<int> p, r;
 public:
-    virtual double area() = 0;
-    virtual void draw() = 0;
+    DSU(int n): p(n), r(n,0) { iota(p.begin(), p.end(), 0); }
+    int find(int x) { return p[x]==x ? x : p[x]=find(p[x]); }
+    void unite(int a,int b) { /* ... */ }
 };
 ```
 
----
-
-## 25. 실생활 예제: 계좌 관리 시스템
-
-```cpp
-class BankAccount {
-private:
-    std::string accountNumber;
-    double balance;
-    std::string owner;
-public:
-    BankAccount(const std::string& acc, const std::string& owner, double init)
-        : accountNumber(acc), balance(init), owner(owner) {}
-    
-    void deposit(double amount) {
-        if (amount > 0) balance += amount;
-    }
-    
-    void withdraw(double amount) {
-        if (amount > 0 && balance >= amount) {
-            balance -= amount;
-        } else {
-            std::cout << "Insufficient funds\n";
-        }
-    }
-    
-    double getBalance() const { return balance; }
-};
-```
-
-- **실무에서 자주 사용되는 설계 패턴**
+> KOI 중등부에서는 상속·가상 함수까지 갈 일은 거의 없다. `struct` + 생성자 + `operator<` 3개면 충분하다.
 
 ---
 
-## 26. C++ 클래스와 디자인 패턴 (Design Patterns)
+## 8. 자주 하는 실수
 
-| 패턴 | 설명 |
-|------|------|
-| **Singleton** | 한 인스턴스만 존재 |
-| **Factory** | 객체 생성을 추상화 |
-| **Observer** | 상태 변화에 반응 |
-
-```cpp
-class Singleton {
-private:
-    static Singleton* instance;
-public:
-    static Singleton* getInstance() {
-        if (!instance) instance = new Singleton();
-        return instance;
-    }
-    ~Singleton() { delete instance; }
-};
-```
-
-> ⚠️ `static` 멤버 함수로 인스턴스 제어 가능
+| 실수 | 결과 |
+|---|---|
+| 멤버를 `public`으로 다 열어둠 | 바깥에서 잘못 바꿔 버그가 숨어든다 |
+| `new`로 만든 것을 `delete` 안 함 | 메모리 누수 |
+| `const` 함수를 `const`로 안 적음 | `const` 객체에서 호출 불가 에러 |
 
 ---
 
-## 27. C++ 클래스와 컴파일 시간 vs 런타임
+## 9. 직접 손으로 풀어 보기
 
-| 시간 | 설명 |
-|-----|------|
-| **컴파일 시간** | 생성자, 소멸자, 정적 멤버 등 정적 생성 |
-| **런타임** | 다형성, 상속, 메서드 호출 |
+**문제 1.** `class A { int x; public: void set(int v){x=v;} };` 에서 `A a; a.x=5;`는?
 
-- `virtual` 함수는 런타임에 결정
+<details><summary>풀이</summary>
+컴파일 에러. `x`는 private라 바깥에서 직접 못 만진다. `a.set(5)`로 해야 한다.
+</details>
 
----
+**문제 2.** `struct Vec{int x,y;}; Vec a{1,2}, b{3,4};`에서 `a+b`를 하려면?
 
-## 28. C++ 클래스와 성능 최적화
-
-- **멤버 변수 최소화** → 메모리 사용 최소화
-- **const 함수는 최적화 가능** → 컴파일러가 제거 가능
-- **이동 생성자 사용** → 큰 객체 처리 최적화
-
----
-
-## 29. C++ 클래스와 실무 개발 가이드
-
-### 29.1 작성 가이드
-
-1. **명확한 이름** 사용 (예: `UserManager`, `FileProcessor`)
-2. **접근 제어** 명확히 정의 (private/protected/public)
-3. **생성자/소멸자** 명시적 처리
-4. **예외 처리** 포함
-5. **테스트 가능** (unit test 가능)
-
----
-
-## 30. 결론
-
-C++ 클래스는 **객체 지향 프로그래밍의 핵심**이며, 다음과 같은 장점이 있습니다:
-
-- **코드 재사용** (상속)
-- **보안성** (접근 제어)
-- **확장성** (다형성, 인터페이스)
-- **유연성** (오버로딩, 템플릿)
-
-> ✅ **C++ 클래스는 단순한 구조체를 넘어, 복잡한 시스템 설계에 적합한 도구**입니다.
-
----
+<details><summary>풀이</summary>
+`operator+`를 정의해야 한다. 없으면 `+`가 무슨 뜻인지 컴파일러가 모른다.
+</details>

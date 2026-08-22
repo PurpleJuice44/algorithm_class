@@ -1,202 +1,163 @@
-# 📚 탐욕법 (Greedy Algorithm) – 전체 정리
+# 탐욕법 - 지금 가장 좋아 보이는 것을 고른다
 
-## 1. 정의와 핵심 원리
+## 정의
 
-**탐욕법**(Greedy Algorithm)은 **현재 상태에서 가장 좋은 선택**을 하며, **지금의 최적 선택을 기반으로 미래의 선택을 결정**하는 알고리즘입니다.
+탐욕법(Greedy)은 **매 순간 가장 좋아 보이는 선택**을 한다. 앞뒤 재지 않고 지금 최선이면 고른다.
+그 선택들이 모여 전체 최선이 되면 성공, 아니면 실패다.
 
-> ✅ 핵심 원칙: **"지금 가장 좋은 선택을 하자"**  
-> → 즉, **지역 최적**을 선택해 **전체 최적**으로 이어지는 경우에 성공
+> 비유: 1,000원짜리 간식 뽑기. 가성비가 가장 좋은 것부터 담는다. "지금 가장 이득인 것"만 보면 된다면 탐욕법이 답이다.
 
-### ✅ 탐욕법의 특징
-| 항목 | 설명 |
-|------|------|
-| **시간 효율성** | O(n) 또는 O(n log n) 등으로 빠르게 작동 가능 |
-| **간단한 구현** | 코드가 간단하고 직관적 |
-| **전체 최적 보장 여부** | ❌ **보장되지 않음** (예: 편안한 정렬 문제) |
-
-> ⚠️ **주의**: 탐욕법이 **전체 최적**을 보장하지 않음.  
-> 예: `0/1 배낭 문제`는 탐욕법으로는 최적 해를 보장할 수 없음.
-
----
-
-## 2. 탐욕법의 장점과 한계
-
-| 항목 | 설명 |
-|------|------|
-| ✅ 장점 | - 구현 쉬움<br>- 시간 효율성 높음<br>- 실생활 문제에 잘 적용됨 (예: 최소 비용, 최대 수익) |
-| ❌ 한계 | - 전체 최적을 보장하지 않음<br>- 문제의 구조에 따라 실패 가능 (예: 편안한 정렬 문제) |
-| 📌 적용 가능 문제 | - 최소 비용 배달<br>- 최대 수익 문제<br>- 편안한 정렬 (activity selection)<br>- 다이아몬드 문제 (dijkstra의 확장) |
-
----
-
-## 3. 주요 문제 유형 및 예시
-
-### 🔹 1. 편안한 정렬 (Activity Selection Problem)
-
-> **문제**: 여러 활동이 시간에 겹치면, 최대 수의 활동을 선택하라.
-
-- **탐욕법 적용**: **시작 시간이 가장 빠른 활동**부터 선택
-- **결과**: 최대 수의 활동 선택 가능 (전체 최적 보장)
-
-#### ✅ 예시
-- 활동: (시작, 종료) → (1,4), (3,5), (0,6), (5,7)
-- 최적 선택: (0,6), (5,7) → 2개
-
----
-
-### 🔹 2. 최소 비용 배달 (Minimum Cost to Connect All Points)
-
-> **문제**: N개의 점을 연결하여 최소 비용으로 연결 (MST 문제)
-
-- **탐욕법 적용**: **크루스칼 알고리즘**(Kruskal) 또는 **프림 알고리즘**(Prim)  
-- **결과**: 최소 스패닝 트리 (MST) 생성
-
----
-
-### 🔹 3. 다이아몬드 문제 (Fractional Knapsack)
-
-> **문제**: 무게 제한이 있는 상자에 물건을 넣을 때, **최대 가치를 얻기 위해** 몇 퍼센트를 넣을지 결정
-
-- **탐욕법 적용**: **단위 무게당 가치가 가장 높은 물건**부터 선택
-- ✅ **탐욕법이 최적 해를 보장**
-
----
-
-### 🔹 4. 최대 수익 문제 (Job Scheduling)
-
-> **문제**: 여러 작업을 수행할 때, **최대 수익**을 얻기 위해 어떤 작업을 선택할지
-
-- **탐욕법 적용**: **수익이 높은 작업**부터 선택 (시간 제약 있음)
-
----
-
-## 4. C++ 예시 코드 (STL 기반)
-
----
-
-### ✅ 예시 1: 편안한 정렬 (Activity Selection)
-
-#### 📌 문제: 시간에 겹치는 활동 중 최대 수를 선택
-
-```cpp
-// STL 기반 (C++11 이상)
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <utility>
-
-using namespace std;
-
-struct Activity {
-    int start, end;
-    bool operator<(const Activity& a) const {
-        return end < a.end; // 종료 시간 기준으로 정렬
-    }
-};
-
-int maxActivities(const vector<Activity>& acts) {
-    sort(acts.begin(), acts.end());
-    int count = 1;
-    int lastEnd = acts[0].end;
-
-    for (int i = 1; i < acts.size(); ++i) {
-        if (acts[i].start >= lastEnd) {
-            count++;
-            lastEnd = acts[i].end;
-        }
-    }
-    return count;
-}
-
-// 예시 사용
-int main() {
-    vector<Activity> activities = {
-        {1, 4}, {3, 5}, {0, 6}, {5, 7}
-    };
-    cout << "최대 활동 수: " << maxActivities(activities) << endl;
-    return 0;
-}
+```mermaid
+flowchart TD
+    A[시작] --> B[지금 선택지 중 가장 좋은 것을 고른다]
+    B --> C[고른 것을 답에 포함]
+    C --> D{더 고를 수 있나?}
+    D -->|예| B
+    D -->|아니오| E[끝. 이게 탐욕법의 답]
 ```
+
 ---
 
-### ✅ 예시 2: 다이아몬드 문제 (Fractional Knapsack)
+## 1. 탐욕법이 통하는 조건
 
-#### 📌 문제: 무게 제한이 10kg인 상자에 물건 넣기
+1. **탐욕적 선택이 전체 최선으로 이어진다**
+2. **앞의 선택이 뒤의 선택을 망치지 않는다** (또는 그 피해가 최선 안에 포함된다)
+
+이 조건이 안 맞는데 탐욕법을 쓰면 틀린 답이 나온다. KOI는 이 차이를 노린다.
+
+---
+
+## 2. 성공하는 대표 예제 3가지
+
+### 예제 1: 활동 선택 - 가장 빨리 끝나는 것부터
+
+회의실 하나에 여러 회의를 넣을 때, 가장 많이 넣는 방법.
+
+**규칙: 끝나는 시간이 가장 빠른 회의부터 고른다.**
+
+```mermaid
+flowchart LR
+    subgraph 활동
+    A1[1-4] --- A2[3-5] --- A3[0-6] --- A4[5-7] --- A5[8-9]
+    end
+    A3 --> S1[끝 4가 가장 빠름 → 1-4 선택]
+    S1 --> S2[4 이후 시작 중 끝 5 → 3-5는 겹쳐서 제외]
+    S2 --> S3[5-7 선택]
+    S3 --> S4[8-9 선택]
+    S4 --> R[총 3개]
+```
+
+> 잘못된 탐욕: "시작이 빠른 것부터" 고르면 0-6을 먼저 골라 2개밖에 못 고른다. "끝이 빠른 것"이 핵심이다.
 
 ```cpp
-// STL 기반
-#include <iostream>
-#include <vector>
-#include <algorithm>
-#include <iomanip>
+#include <bits/stdc++.h>
 using namespace std;
 
-struct Item {
-    int value, weight;
-    double ratio; // 단위 무게당 가치
-    bool operator<(const Item& a) const {
-        return ratio > a.ratio; // 큰 비율부터
-    }
-};
-
-int fractionalKnapsack(int n, int maxWeight, vector<Item>& items) {
-    sort(items.begin(), items.end());
-    int totalValue = 0;
-    int currentWeight = 0;
-
-    for (int i = 0; i < n; ++i) {
-        if (currentWeight + items[i].weight <= maxWeight) {
-            currentWeight += items[i].weight;
-            totalValue += items[i].value;
-        } else {
-            double fraction = (double)(maxWeight - currentWeight) / items[i].weight;
-            totalValue += items[i].value * fraction;
-            break;
-        }
-    }
-    return totalValue;
-}
+struct Act { int s, e; };
 
 int main() {
-    vector<Item> items = {
-        {60, 10}, {100, 20}, {120, 30}
-    };
-
-    cout << "최대 수익: " << fractionalKnapsack(3, 50, items) << endl;
-    return 0;
+    vector<Act> a = {{1,4},{3,5},{0,6},{5,7},{8,9}};
+    sort(a.begin(), a.end(), [](auto &p, auto &q){
+        return p.e < q.e; // 끝나는 시간이 빠른 순
+    });
+    int cnt = 0, lastEnd = -1;
+    for (auto &x : a) {
+        if (x.s >= lastEnd) { // 겹치지 않으면 선택
+            cnt++;
+            lastEnd = x.e;
+        }
+    }
+    cout << cnt << '\n'; // 3
 }
 ```
 
-## 5. 탐욕법이 성공할 조건
+### 예제 2: 거스름돈 - 큰 동전부터
 
-| 조건 | 설명 |
-|------|------|
-| ✅ **단순한 선택 기준** | (예: 시간, 비용, 수익 등) |
-| ✅ **최적 하위 구조** | (예: 각 선택이 전체 최적에 기여) |
-| ✅ **무게 제한 문제** | (예: Fractional Knapsack) |
-| ❌ **0/1 Knapsack** | 탐욕법은 최적 해를 보장하지 않음 |
+동전이 500, 100, 50, 10원일 때 가장 적게 주는 방법.
+
+```mermaid
+flowchart TD
+    G1[거스름돈 760원] --> G2[500원 1개 → 260원 남음]
+    G2 --> G3[100원 2개 → 60원 남음]
+    G3 --> G4[50원 1개 → 10원 남음]
+    G4 --> G5[10원 1개 → 0원. 총 5개]
+```
+
+큰 동전부터 고르면 최소 개수다. (단, 동전이 400, 300, 250원처럼 애매하면 이 탐욕은 실패한다.)
+
+### 예제 3: 부분 배낭 - 가성비 순
+
+무게 제한 50, 물건을 쪼갤 수 있을 때.
+
+**규칙: 1kg당 가치가 높은 것부터 담는다.**
+
+| 물건 | 가치 | 무게 | 가성비 |
+|---|---|---|---|
+| A | 60 | 10 | 6 |
+| B | 100 | 20 | 5 |
+| C | 120 | 30 | 4 |
+
+50kg → A 10kg + B 20kg + C 20kg(쪼개서) = 가치 60+100+80=240 (최적)
+
+쪼갤 수 없으면(0/1 배낭) 이 탐욕은 실패한다. KOI는 "쪼갤 수 있는가?"를 꼭 확인시킨다.
+
+```cpp
+struct Item { int value, weight; double ratio; };
+
+int main() {
+    vector<Item> items = {{60,10,6},{100,20,5},{120,30,4}};
+    sort(items.begin(), items.end(), [](auto &a, auto &b){
+        return a.ratio > b.ratio;
+    });
+    int W = 50, cur = 0;
+    double total = 0;
+    for (auto &it : items) {
+        if (cur + it.weight <= W) { cur += it.weight; total += it.value; }
+        else { total += it.value * double(W - cur) / it.weight; break; }
+    }
+    cout << total << '\n';
+}
+```
 
 ---
 
-## 6. 요약
+## 3. 탐욕법이 실패하는 예
 
-| 항목 | 내용 |
-|------|------|
-| 🔍 핵심 원리 | 현재 최적 선택 → 미래 선택 기반 |
-| ✅ 성공 사례 | Fractional Knapsack, Activity Selection, MST |
-| ❌ 실패 사례 | 0/1 Knapsack, 일부 최적화 문제 |
-| 💡 추천 사용 | **시간 제한이 적고, 비용/수익/시간 기준이 명확한 문제**에 적합 |
+**0/1 배낭** (쪼갤 수 없음), 무게 50.
+
+- 탐욕(가성비 순): A+B = 30kg, 가치 160. 남은 20kg에 C는 30kg이라 못 넣음 → 160
+- 최적: B+C = 50kg, 가치 220 → 탐욕보다 크다.
+
+> 결론: 쪼갤 수 없으면 탐욕으로 풀지 않는다. DP로 푼다.
+
+```mermaid
+flowchart TD
+    F1[탐욕이 실패하는 문제] --> F2[0/1 배낭\n동전 종류가 애매한 거스름돈]
+    F2 --> F3[탐욕으로 답을 내면 틀린다]
+    F3 --> F4[DP로 전환]
+```
+
+---
+
+## 4. 직접 손으로 풀어 보기
+
+**문제 1.** 활동 (1,3) (2,4) (3,5). 끝나는 시간 순 탐욕으로 몇 개 고르나?
+
+<details><summary>풀이</summary>
+끝 3 → 1,3 선택, 다음 2,4는 겹쳐서 제외, 3,5 선택 → 총 2개. 이게 최적이다.
+</details>
+
+**문제 2.** 동전이 500, 400, 300원, 거스름돈 800원. 큰 동전부터 탐욕이면?
+
+<details><summary>풀이</summary>
+500+300=800 (2개)가 답인데 탐욕은 500+300=800으로 우연히 맞는다. 600원이면 탐욕은 500+...1개 남음→ 못 만들고, 최적은 300+300=600 (2개)로 탐욕이 실패한다. 동전 종류에 따라 탐욕이 되는지 따져야 한다.
+</details>
 
 ---
 
-## ✅ 결론
+## 5. KOI에서는 이렇게 나온다
 
-탐욕법은 **간단하고 빠르며 실생활 문제에 매우 유용**합니다.  
-하지만 **전체 최적을 보장하지 않기 때문에**, 문제의 구조를 잘 이해하고 **탐욕법이 적용 가능한지 판단**하는 것이 중요합니다.
-
-> 📌 **요약**:  
-> - **탐욕법은 "지금 가장 좋은 선택"을 하며, 전체 최적을 보장하지 않음**  
-> - **STL과 Non-STL 모두 구현 가능**, 실무에서 유연하게 사용 가능  
-> - **정확한 문제 분석**이 핵심 (예: 0/1 vs Fractional)
-
----
+- "가장 많이", "가장 적게"가 나오면 탐욕을 의심한다.
+- 하지만 바로 탐욕으로 쓰지 않는다. **"지금 최선이 전체 최선인가?"**를 반례 한 개로 검증한다.
+- 활동 선택, 거스름돈(일반 동전), 부분 배낭은 KOI 단골 탐욕 유형이다.
+- 0/1 배낭처럼 보이면 탐욕이 아니라 DP다. 둘을 구분하는 것이 점수를 가른다.

@@ -1,530 +1,218 @@
-# C++ Container (세부 설명)
+# C++ 컨테이너 - 데이터를 담는 상자
 
-C++에서 **Container**(컨테이너)는 데이터를 저장하고 관리하는 데 사용되는 자료구조를 말합니다. C++ 표준 라이브러리(STL: Standard Template Library)는 다양한 컨테이너를 제공하며, 각 컨테이너는 데이터의 저장 방식, 접근 속도, 삭제/삽입/탐색 성능, 메모리 사용량 등에 따라 특성과 용도가 다릅니다.
+## 컨테이너란?
 
-이 문서는 C++에서 자주 사용되는 **Set, Vector, List, LinkedList, deque, stack, queue, map, unordered_map** 등 주요 컨테이너들을 **구조, 특성, 시간 복잡도, 사용 예시, 실무 팁**까지 세세하게 설명합니다. 각 컨테이너는 문제 해결에 적합한 자료구조를 제공하며, 개발자가 문제의 특성에 따라 적절한 컨테이너를 선택할 수 있도록 하기 위해 자세한 분석을 제공합니다.
+데이터를 담는 상자다. 상자마다 꺼내는 방법과 속도가 다르다.
+KOI는 "어떤 상자를 쓰면 가장 빠른지"를 묻는 대회다.
 
----
-
-## 1. Vector (동적 배열)
-
-### ▶ 구조
-- `std::vector<T>`는 동적 배열로, `T` 타입의 요소들을 연속된 메모리 공간에 저장합니다.
-- 크기를 고정하지 않고, 필요할 때 자동으로 확장합니다.
-- 내부적으로 `capacity`와 `size`를 관리합니다.
-
-### ▶ 특징
-| 항목     | 설명                                    |     |
-| ------ | ------------------------------------- | --- |
-| 접근 속도  | O(1) (인덱스 기반)                         |     |
-| 삽입/삭제  | O(n) (끝에 삽입/삭제는 O(1), 중간 삽입/삭제는 O(n)) |     |
-| 메모리 효율 | 연속된 메모리 → 캐시 효율성 우수                   |     |
-| 자동 확장  | `push_back`, `pop_back` 등으로 확장 가능     |     |
-
-### ▶ 시간 복잡도 (주요 연산)
-| 연산 | 시간 복잡도 |
-|------|------------|
-| 생성 | O(1) |
-| push_back | O(1) (평균), O(n) (최악) |
-| pop_back | O(1) |
-| at(i) | O(1) |
-| insert(i, x) | O(n) |
-| erase(i) | O(n) |
-| find(x) | O(n) |
-| sort() | O(n log n) |
-
-### ▶ 예시 코드 (C++)
-
-```cpp
-#include <iostream>
-#include <vector>
-#include <algorithm>
-using namespace std;
-
-int main() {
-    vector<int> vec = {1, 3, 5, 7, 9};
-    vec.push_back(11);  // 뒤에 추가
-    vec.insert(vec.begin() + 2, 4);  // 중간 삽입
-    vec.erase(vec.begin() + 1);      // 중간 삭제
-
-    for (int x : vec) {
-        cout << x << " ";
-    }
-    cout << endl;
-
-    // 정렬
-    sort(vec.begin(), vec.end());
-    return 0;
-}
-```
-
-### ▶ 실무 팁
-- **빈도 높은 접근** (예: 배열 순회) → `vector`가 최적
-- **중간 삽입/삭제가 자주 발생** → `list`나 `deque`를 고려
-- **메모리 캐시 효율** → 연속 메모리 → 빠른 접근
-
----
-
-## 2. List (연결 리스트)
-
-### ▶ 구조
-- `std::list<T>`는 **이중 연결 리스트**(doubly linked list) 구조를 사용합니다.
-- 각 노드는 `prev`, `next` 포인터를 포함하며, 순서를 유지합니다.
-- 메모리가 연속적이지 않음.
-
-### ▶ 특징
-| 항목 | 설명 |
-|------|------|
-| 접근 속도 | O(n) (인덱스 접근 불가) |
-| 삽입/삭제 | O(1) (중간/끝/시작 모두 가능) |
-| 메모리 효율 | 낮음 (포인터 추가) |
-| 순회 | O(n) |
-
-### ▶ 시간 복잡도 (주요 연산)
-| 연산 | 시간 복잡도 |
-|------|------------|
-| push_front | O(1) |
-| push_back | O(1) |
-| pop_front | O(1) |
-| pop_back | O(1) |
-| insert(pos, x) | O(1) (pos가 지정되면) |
-| erase(pos) | O(1) |
-| find(x) | O(n) |
-| size() | O(n) |
-
-### ▶ 예시 코드
-
-```cpp
-#include <iostream>
-#include <list>
-using namespace std;
-
-int main() {
-    list<int> lst = {1, 2, 3, 4, 5};
-
-    // 앞에 삽입
-    lst.push_front(0);
-    // 뒤에 삽입
-    lst.push_back(6);
-
-    // 중간 삽입
-    auto it = lst.begin();
-    advance(it, 2);
-    lst.insert(it, 100);
-
-    // 순회
-    for (int x : lst) {
-        cout << x << " ";
-    }
-    cout << endl;
-
-    return 0;
-}
-```
-
-### ▶ 실무 팁
-- **중간/끝 삽입/삭제가 자주 발생** → `list`가 최적
-- **인덱스 기반 접근 필요 없음** → `vector`보다 적합
-- **순회가 자주 필요** → `list`는 순회에 유리
-
----
-
-## 3. Deque (Double-ended Queue)
-
-### ▶ 구조
-- `std::deque<T>`는 **양 끝에서 삽입/삭제가 가능한 큐**입니다.
-- `vector`와 `list`의 장점을 결합한 자료구조.
-- 메모리가 연속적이지 않지만, 끝에만 효율적으로 접근 가능.
-
-### ▶ 특징
-| 항목 | 설명 |
-|------|------|
-| 접근 속도 | O(1) (앞/뒤) |
-| 삽입/삭제 | O(1) (앞/뒤), O(n) (중간) |
-| 메모리 | 중간에 삽입 시 비효율적 |
-| 크기 제한 | 없음 (무한 확장 가능) |
-
-### ▶ 시간 복잡도
-| 연산 | 시간 복잡도 |
-|------|------------|
-| push_front | O(1) |
-| push_back | O(1) |
-| pop_front | O(1) |
-| pop_back | O(1) |
-| insert(i, x) | O(n) (중간) |
-| find(x) | O(n) |
-| size() | O(1) |
-
-### ▶ 예시 코드
-
-```cpp
-#include <iostream>
-#include <deque>
-using namespace std;
-
-int main() {
-    deque<int> dq;
-    dq.push_back(1);
-    dq.push_front(0);
-    dq.push_back(2);
-
-    for (int x : dq) {
-        cout << x << " ";
-    }
-    cout << endl;
-
-    // 중간 삽입 (비효율적)
-    dq.insert(dq.begin() + 1, 50);
-    return 0;
-}
-```
-
-### ▶ 실무 팁
-- **양 끝에서 자주 삽입/삭제** (예: 슬라이딩 윈도우, BFS) → `deque`가 최적
-- **중간 삽입은 피해야 함** → `vector`나 `list`보다 느림
-
----
-
-## 4. Set (집합)
-
-### ▶ 구조
-- `std::set<T>`는 **자동 정렬된 순서를 가지는 집합**입니다.
-- `T` 타입이 **비교 가능**해야 하며, `std::less<T>` 기반으로 정렬.
-- 중복 허용 없음 (unique).
-
-### ▶ 특징
-| 항목 | 설명 |
-|------|------|
-| 접근 속도 | O(log n) (find, insert, erase) |
-| 중복 제거 | 자동 |
-| 순서 | 정렬된 순서 (예: 1, 2, 3, 4) |
-| 메모리 | O(n) |
-
-### ▶ 시간 복잡도
-| 연산 | 시간 복잡도 |
-|------|------------|
-| insert(x) | O(log n) |
-| find(x) | O(log n) |
-| erase(x) | O(log n) |
-| size() | O(1) |
-| empty() | O(1) |
-
-### ▶ 예시 코드
-
-```cpp
-#include <iostream>
-#include <set>
-using namespace std;
-
-int main() {
-    set<int> s = {5, 2, 8, 1, 9};
-    s.insert(3);  // 중복 방지
-    s.erase(8);
-
-    for (int x : s) {
-        cout << x << " ";
-    }
-    cout << endl;
-
-    return 0;
-}
-```
-
-### ▶ 실무 팁
-- **중복 제거 + 정렬 필요** → `set`이 최적
-- **순서가 중요** (예: 정렬된 데이터 처리) → `set` 사용
-- `unordered_set`으로 **해시 기반**으로 더 빠르게 처리 가능
-
----
-
-## 5. Multiset (중복 허용 집합)
-
-### ▶ 구조
-- `std::multiset<T>`는 `set`과 유사하지만 **중복 허용**합니다.
-- 정렬 유지 + 중복 허용
-
-### ▶ 특징
-| 항목 | 설명 |
-|------|------|
-| 중복 허용 | O(1) |
-| 순서 | 정렬된 순서 유지 |
-| 시간 복잡도 | O(log n) |
-
-### ▶ 예시
-
-```cpp
-#include <iostream>
-#include <multiset>
-using namespace std;
-
-int main() {
-    multiset<int> ms = {1, 2, 2, 3, 3, 3};
-    ms.insert(4);
-    ms.erase(ms.find(2));  // 특정 값 제거
-
-    for (int x : ms) {
-        cout << x << " ";
-    }
-    cout << endl;
-    return 0;
-}
+```mermaid
+flowchart TD
+    A[컨테이너] --> B[순서대로 담는 상자\nvector, deque, list]
+    A --> C[꺼내는 규칙이 있는 상자\nstack, queue, priority_queue]
+    A --> D[찾는 상자\nset, map, unordered_map]
 ```
 
 ---
 
-## 6. Map (키-값 맵)
+## 1. Vector - 가장 기본 상자 (동적 배열)
 
-### ▶ 구조
-- `std::map<K, V>`는 **키 기반으로 값을 저장**하는 자료구조.
-- `K`는 **비교 가능**해야 하며, `std::less<K>` 기반 정렬.
-- 자동 정렬, 중복 허용 없음.
+연속된 칸에 차례로 담는다. 번호로 바로 꺼낼 수 있다.
 
-### ▶ 특징
-| 항목 | 설명 |
-|------|------|
-| 접근 속도 | O(log n) (find, insert, erase) |
-| 중복 키 | 허용 안 됨 |
-| 순서 | 정렬된 순서 유지 |
+```mermaid
+flowchart LR
+    V1[0:1] --- V2[1:3] --- V3[2:5] --- V4[3:7] --- V5[4:9]
+    V6[vec[2] → 5 O1\n바로 꺼냄]
+```
 
-### ▶ 시간 복잡도
-| 연산 | 시간 복잡도 |
-|------|------------|
-| insert(key, value) | O(log n) |
-| find(key) | O(log n) |
-| erase(key) | O(log n) |
-| size() | O(1) |
-
-### ▶ 예시
+| 연산 | 시간 | 설명 |
+|---|---|---|
+| `push_back(x)` | 평균 O(1) | 뒤에 추가 |
+| `pop_back()` | O(1) | 뒤에서 빼기 |
+| `a[i]` / `at(i)` | O(1) | 번호로 접근 |
+| `insert(pos,x)` | O(n) | 중간에 끼우면 뒤가 다 밀림 |
+| `erase(pos)` | O(n) | 중간에서 빼면 뒤가 다 당겨짐 |
 
 ```cpp
-#include <iostream>
-#include <map>
+#include <bits/stdc++.h>
 using namespace std;
-
 int main() {
-    map<string, int> mp;
-    mp["apple"] = 5;
-    mp["banana"] = 3;
-    mp["cherry"] = 8;
-
-    for (auto& [k, v] : mp) {
-        cout << k << ": " << v << endl;
-    }
-    return 0;
+    vector<int> a = {1, 3, 5, 7, 9};
+    a.push_back(11);              // 1 3 5 7 9 11
+    a.insert(a.begin() + 2, 4);   // 1 3 4 5 7 9 11 (중간 삽입)
+    a.erase(a.begin() + 1);       // 1 4 5 7 9 11
+    sort(a.begin(), a.end());
+    for (int x : a) cout << x << ' ';
 }
+```
+
+> KOI 기본값: 특별한 이유가 없으면 `vector`를 쓴다.
+
+---
+
+## 2. Deque - 양쪽으로 넣고 빼는 상자
+
+앞뒤 모두에서 O(1)로 넣고 뺀다. `vector`는 앞에서 넣기가 느리다.
+
+```mermaid
+flowchart LR
+    D1[앞 push_front] --> D2[0 1 2]
+    D2 --> D3[뒤 push_back]
+    D3 --> D4[0 1 2 3]
+```
+
+```cpp
+deque<int> dq;
+dq.push_back(1);   // 1
+dq.push_front(0);  // 0 1
+dq.push_back(2);   // 0 1 2
+dq.pop_front();    // 1 2
+```
+
+> BFS 큐, 슬라이딩 윈도우에서 `deque`가 주역이다.
+
+---
+
+## 3. List - 줄줄이 연결된 상자
+
+칸이 떨어져 있고 화살표로 연결된다. 중간에 끼우기·빼기는 빠르지만 번호로 바로 가기는 느리다.
+
+```mermaid
+flowchart LR
+    L1[1] --> L2[2] --> L3[3] --> L4[4]
+    L1 -.->|prev| L1
+    L3 -.->|중간 삽입 O1| L3
+    L5[번호로 찾기 O n\n처음부터 따라가야 함]
+```
+
+| 연산 | 시간 |
+|---|---|
+| `push_front/back` | O(1) |
+| `insert(pos,x)` | O(1) (위치만 알면) |
+| `erase(pos)` | O(1) |
+| `a[i]` | 불가 (없음) |
+
+> KOI에서 `list`는 거의 안 쓴다. `vector`가 캐시 때문에 실제로 더 빠르다. 중간 삽입이 정말 많을 때만 고려한다.
+
+---
+
+## 4. Stack - 쌓는 상자 (LIFO)
+
+마지막에 넣은 것이 먼저 나온다. 접시 쌓기와 같다.
+
+```mermaid
+flowchart TD
+    S1[push 1] --> S2[push 2]
+    S2 --> S3[push 3\ntop=3]
+    S3 --> S4[pop → 3 나옴]
+    S4 --> S5[pop → 2 나옴]
+```
+
+```cpp
+stack<int> st;
+st.push(1); st.push(2); st.push(3);
+cout << st.top() << '\n'; // 3
+st.pop(); // 3 제거
+```
+
+> 괄호 짝 맞추기, DFS에서 쓴다.
+
+---
+
+## 5. Queue - 줄 서는 상자 (FIFO)
+
+먼저 온 사람이 먼저 나간다. 매표소 줄과 같다.
+
+```mermaid
+flowchart LR
+    Q1[push 1] --> Q2[push 2] --> Q3[push 3]
+    Q3 --> Q4[pop → 1 나옴]
+    Q4 --> Q5[pop → 2 나옴]
+```
+
+```cpp
+queue<int> q;
+q.push(1); q.push(2); q.push(3);
+cout << q.front() << '\n'; // 1
+q.pop();
+```
+
+> BFS에서 쓴다.
+
+---
+
+## 6. Priority Queue - 줄을 새치기하는 상자
+
+"가장 큰(또는 작은) 것"이 먼저 나온다. 힙으로 만들어진다.
+
+```cpp
+priority_queue<int> pq; // 큰 것부터
+pq.push(10); pq.push(5); pq.push(15);
+cout << pq.top() << '\n'; // 15
+pq.pop();
+
+// 작은 것부터
+priority_queue<int, vector<int>, greater<int>> minpq;
+```
+
+> 다익스트라, "가장 큰 k개" 문제에서 쓴다.
+
+---
+
+## 7. Set / Map / Unordered
+
+집합과 맵은 `Set_n_Map.md`에서 자세히 다뤘다. 여기서는 한눈에 비교만 한다.
+
+| 컨테이너 | 정렬 | 중복 | 평균 탐색 |
+|---|---|---|---|
+| `set` | 함 | 없음 | O(log n) |
+| `map` | 키 정렬 | 키 중복 없음 | O(log n) |
+| `unordered_set/map` | 안 함 | 없음 / 키 중복 없음 | O(1) |
+
+```mermaid
+flowchart TD
+    Q[무엇이 필요한가?]
+    Q --> S1{순서가 필요한가?}
+    S1 -->|예| V[vector / deque]
+    S1 -->|아니오| S2{중복 제거·존재 확인?}
+    S2 -->|예| SET[set]
+    S2 -->|아니오| S3{키로 값 찾기?}
+    S3 -->|예| MAP[map]
+    S3 -->|아니오| S4{쌓기/줄서기?}
+    S4 -->|쌓기| ST[stack]
+    S4 -->|줄서기| QU[queue]
+    S4 -->|큰 것부터| PQ[priority_queue]
 ```
 
 ---
 
-## 7. Unordered Map (해시 맵)
+## 8. 선택 기준 - KOI 10초 컷
 
-### ▶ 구조
-- `std::unordered_map<K, V>`는 **해시 테이블 기반**으로 저장.
-- 평균 O(1) 시간 복잡도 (최악 O(n))
+| 상황 | 답 |
+|---|---|
+| 그냥 담고 순서대로 본다 | `vector` |
+| 앞에서 넣고 빼기가 많다 | `deque` |
+| 괄호·되돌리기 | `stack` |
+| BFS·줄서기 | `queue` |
+| 가장 큰 것부터 꺼내기 | `priority_queue` |
+| 중복 제거·정렬 유지 | `set` |
+| 키로 값 찾기 + 정렬 | `map` |
+| 키로 값 찾기 + 속도 최우선 | `unordered_map` |
 
-### ▶ 특징
-| 항목 | 설명 |
-|------|------|
-| 접근 속도 | 평균 O(1), 최악 O(n) |
-| 순서 | 무순 (임의 순서) |
-| 중복 키 | 허용 안 됨 (단, `unordered_multimap` 있음) |
-
-### ▶ 시간 복잡도
-| 연산 | 시간 복잡도 |
-|------|------------|
-| insert | O(1) (평균) |
-| find | O(1) (평균) |
-| erase | O(1) (평균) |
-| size() | O(1) |
-
-### ▶ 예시
-
-```cpp
-#include <iostream>
-#include <unordered_map>
-using namespace std;
-
-int main() {
-    unordered_map<string, int> um;
-    um["a"] = 1;
-    um["b"] = 2;
-    um["c"] = 3;
-
-    for (auto& [k, v] : um) {
-        cout << k << ": " << v << endl;
-    }
-    return 0;
-}
-```
+> 실수 1순위: `vector` 중간에 `insert`를 반복하면 O(n²)가 된다. 앞에서 자주 넣어야 하면 처음부터 `deque`를 쓴다.
+> 실수 2순위: `at(i)`와 `[i]` 차이. `at`은 범위 밖이면 에러를 알려 주고, `[i]`는 그냥 넘어가 틀린 값이 나온다. 연습할 때는 `at`을 쓰자.
 
 ---
 
-## 8. Stack (스택)
+## 9. 직접 손으로 풀어 보기
 
-### ▶ 구조
-- `std::stack<T>`는 **LIFO**(Last In, First Out) 구조.
-- `push`, `pop`, `top`, `size`, `empty` 연산 제공.
+**문제 1.** `vector {1,2,3}`에서 `insert(begin()+1, 9)` 결과는?
 
-### ▶ 특징
-| 항목 | 설명 |
-|------|------|
-| 접근 방식 | LIFO |
-| 시간 복잡도 | O(1) (모든 연산) |
-| 자료구조 | 일반적으로 `vector` 또는 `deque` 기반 |
+<details><summary>풀이</summary>
+1 9 2 3. 1 뒤에 9가 끼고 나머지가 뒤로 밀린다.
+</details>
 
-### ▶ 예시
+**문제 2.** BFS를 구현할 때 `stack`과 `queue` 중 무엇인가?
 
-```cpp
-#include <iostream>
-#include <stack>
-using namespace std;
-
-int main() {
-    stack<int> st;
-    st.push(1);
-    st.push(2);
-    st.push(3);
-
-    while (!st.empty()) {
-        cout << st.top() << " ";
-        st.pop();
-    }
-    return 0;
-}
-```
-
----
-
-## 9. Queue (큐)
-
-### ▶ 구조
-- `std::queue<T>`는 **FIFO**(First In, First Out) 구조.
-- `push`, `pop`, `front`, `back`, `size`, `empty` 제공.
-
-### ▶ 특징
-| 항목 | 설명 |
-|------|------|
-| 접근 방식 | FIFO |
-| 시간 복잡도 | O(1) (모든 연산) |
-| 자료구조 | `deque` 기반 (효율적) |
-
-### ▶ 예시
-
-```cpp
-#include <iostream>
-#include <queue>
-using namespace std;
-
-int main() {
-    queue<int> q;
-    q.push(1);
-    q.push(2);
-    q.push(3);
-
-    while (!q.empty()) {
-        cout << q.front() << " ";
-        q.pop();
-    }
-    return 0;
-}
-```
-
----
-
-## 10. Priority Queue (우선순위 큐)
-
-### ▶ 구조
-- `std::priority_queue<T>`는 **최대/최소 우선순위**를 기반으로 저장.
-- 최대 힙 (default), 최소 힙 가능 (reverse)
-
-### ▶ 특징
-| 항목 | 설명 |
-|------|------|
-| 접근 방식 | 우선순위 기반 |
-| 시간 복잡도 | O(log n) (삽입/삭제) |
-| 자료구조 | 최대 힙 (default) |
-
-### ▶ 예시
-
-```cpp
-#include <iostream>
-#include <queue>
-#include <vector>
-using namespace std;
-
-int main() {
-    priority_queue<int> pq;
-    pq.push(10);
-    pq.push(5);
-    pq.push(15);
-
-    while (!pq.empty()) {
-        cout << pq.top() << " ";
-        pq.pop();
-    }
-    return 0;
-}
-```
-
----
-
-## 컨테이너 비교 요약 (표)
-
-| 컨테이너 | 접근 | 삽입/삭제 | 중복 | 정렬 | 메모리 |
-|--------|------|----------|------|------|--------|
-| **vector** | O(1) | O(n) (중간) | ❌ | ✅ | 중간 |
-| **list** | O(n) | O(1) | ❌ | ✅ | 높음 (포인터) |
-| **deque** | O(1) (앞/뒤) | O(1) (앞/뒤), O(n) (중간) | ❌ | ✅ | 중간 |
-| **set** | O(log n) | O(log n) | ❌ | ✅ | 중간 |
-| **multiset** | O(log n) | O(log n) | ✅ | ✅ | 중간 |
-| **map** | O(log n) | O(log n) | ❌ | ✅ | 중간 |
-| **unordered_map** | O(1) | O(1) | ❌ | ❌ | 중간 |
-| **stack** | O(1) | O(1) | ❌ | ❌ | 낮음 |
-| **queue** | O(1) | O(1) | ❌ | ❌ | 낮음 |
-
----
-
-## 실무에서의 선택 기준
-
-| 상황 | 추천 컨테이너 |
-|------|--------------|
-| **순회 + 빠른 접근** | `vector` |
-| **중간 삽입/삭제 자주 발생** | `list` |
-| **양 끝 삽입/삭제** | `deque` |
-| **중복 제거 + 정렬** | `set`, `map` |
-| **빠른 키-값 접근** | `unordered_map` |
-| **스택/큐 구현** | `stack`, `queue` |
-| **최대/최소 찾기** | `priority_queue` |
-
----
-
-## 실무 팁 & 주의사항
-
-1. **메모리 관리**: `vector`는 `new`보다 더 안전하고 자동 해제 가능.
-2. **순서 중요 여부**: 정렬이 필요하면 `set`, `map` 사용. 순서 없으면 `unordered_map`.
-3. **성능 최적화**: `unordered_map`은 평균 O(1)이지만, 충돌 시 O(n)이므로 `hash` 크기 조절 필요.
-4. **예외 처리**: `vector`의 `at(i)`는 범위 초과 시 예외 발생 (안전), `operator[]`는 범위 초과 시 undefined behavior.
-5. **C++11 이상 권장**: `auto`, `range-based for`, `std::pair` 등 최신 기능 활용.
-
----
-
-## 결론
-
-C++의 STL 컨테이너는 **문제의 특성에 따라 최적의 자료구조를 선택**하는 데 핵심적인 역할을 합니다.  
-- **접근 빈도** → `vector`  
-- **삽입/삭제 빈도** → `list`, `deque`  
-- **정렬/중복 제거** → `set`, `map`  
-- **빠른 키-값 접근** → `unordered_map`  
-- **스택/큐** → `stack`, `queue`
-
-개발자는 **문제의 요구사항** (예: 중복 허용 여부, 순서, 성능)을 파악하고, 적절한 컨테이너를 선택함으로써 **효율성과 안정성**을 극대화할 수 있습니다.
-
----
-
-## 참고 자료
-- C++ Reference: https://en.cppreference.com
-- STL 문서: https://www.cplusplus.com/reference/
-- "C++ Primer" (5th Edition) – Chapter 18 (STL)
-- "Effective C++" – Item 31: Use the Right Container
-
----
+<details><summary>풀이</summary>
+`queue`. BFS는 먼저 들어온 것을 먼저 꺼내야 가까운 것부터 퍼진다. `stack`은 DFS가 된다.
+</details>
